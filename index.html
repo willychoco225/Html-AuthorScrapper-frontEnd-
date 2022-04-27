@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang = "en">
+<head>
+    <meta charset = "UTF-8">
+    <meta name="viewport" content ="width=device-width, initial= scale=1.0">
+    <!--imports/bootstrap-->
+    <link  rel ='stylesheet' href = "https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css"/>
+    <!-- vue js/javascrip -->
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+    <title>Grabbit
+    </title>
+
+</head>
+<<style >
+  .card-img-top{
+    height: 90%;
+    width: 100%;
+    object-fit: 100%;
+  }
+  .list-group{
+    max-height:200px;
+    overflow-y: scroll;
+  }
+  .container{
+    margin-top:200px;
+  }
+</style>
+
+<<body>
+
+<div id="app">
+  <nav class="navbar fixed-top navbar-dark bg-dark">
+  <!-- Navbar content -->
+  <a class="navbar-brand">Grabbit</a>
+ <form class="form-inline">
+   <input class="form-control mr-sm-2"  placeholder="Search" v-model ="Search" >
+   <button class="btn btn-outline-success my-2 my-sm-0"@click = "filterauthors" >Search</button>
+ </form>
+</nav>
+    <div class = "container">
+      <div class = "card-group" v-for = "author_list, idx in displayedAuthors":key ="idx">
+        <author-card v-for = "author in author_list":key ="author":author ="author" :image ="images[author]" :quotes="quotes[author]">
+      >
+      </author-card>
+       </div>
+ </div>
+        </div>
+
+
+<script>
+  Vue.component('author-card',{
+    props: ['author','image','quotes'],
+    data(){
+      return{ showQuotes :false}
+    },
+    methods:{
+      toggleShow(){
+        this.showQuotes = !this.showQuotes;
+      }
+    },
+    template:`<div class="card" >
+   <img class="card-img-top" :src="image" alt="Card image cap">
+   <div class="card-body">
+     <h4 class="card-title">{{author}}</h4>
+     <button  class="btn btn-outline-secondary" @click=toggleShow >{{showQuotes? 'HIDE' :'View'}} Quotes</button>
+     <ul v-if= "showQuotes" class="list-group">
+       <li class= "list-group-item" v-for="quote in quotes">
+         <p>'{{quote}}'</p>
+         </li>
+         </ul>
+        </div>
+    </div>`
+  })
+    new Vue({
+      el: '#app',
+      async created(){
+
+        const url = "http://127.0.0.1:5000"
+        const response = await fetch(url)
+        const data = await response.json()
+        this.authors = data.authors
+        this.displayedAuthors = this.authors
+        this.quotes = data.quotes
+        this.images = data.images
+
+      },
+      data(){
+        return{
+          authors:[],
+          displayedAuthors:[],
+          quotes:{},
+          images:{},
+          Search:''
+        }
+
+      },
+      methods:{
+        filterauthors(event){
+          event.preventDefault()
+          const matches =  []
+          this.displayedAuthors = []
+          this.authors.forEach(authorlist =>{
+            authorlist.forEach(author =>{
+              const authorMatch = author.toLowerCase().startWith(this.Search.toLowerCase())
+              ||
+             author.toLowerCase().endsWith(this.Search.toLowerCase())
+             if (authorMatch){
+               matches.push(author)
+           }
+         })
+       })
+       console.log(matches)
+       this.displayedAuthors = this.createdNestedList(matches)
+       this.Search= ''
+     },
+
+		    createdNestedList(list){
+        const nested = []
+        for (let i = 0; i< list.length; i+3){
+          nested.push(list.slice(i,i+3))
+        }
+        return nested
+      }
+    }
+  })
+
+</script>
+
+</body>
+</html>
